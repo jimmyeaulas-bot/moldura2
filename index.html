@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Kiosk Pedagógico - Estilo Caderno & Lousa</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================================
+       VARIÁVEIS DE TEMA (CADERNO & CORES VIVAS)
+       ======================================================== */
+    :root {
+      --top-height: 50px;
+      --bottom-height: 50px;
+      --left-width: 66px;
+      --right-width: 48px;
+
+      --ink: #173fa6;
+      --red: #e03131;
+      --green: #2f9e44;
+      --yel: #ffd43b;
+      --lar: #e8590c;
+      --cyan: #1098ad;
+      --papel: #fbfdff;
+      --surface: #ffffff;
+      --grade: #d6e6f7;
+      --text-main: #21315e;
+      --text-muted: #57606a;
+      --border-color: #173fa6;
+      --clock-bg: #ffffff;
+      --clock-border: #173fa6;
+      --clock-text: #173fa6;
+      --card-bg: rgba(255, 253, 246, 0.98);
+      --card-text: #21315e;
+      --date-color: #0b3954;
+    }
+
+    body.dark-theme {
+      --papel: #0d1117;
+      --surface: #161b22;
+      --grade: #21262d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --border-color: #30363d;
+      --clock-bg: #000000;
+      --clock-border: #ffd43b;
+      --clock-text: #ffd43b;
+      --card-bg: rgba(22, 27, 34, 0.95);
+      --card-text: #f0f6fc;
+      --date-color: #70d6ff;
+    }
+
+    body.top-collapsed { --top-height: 0px; }
+    body.bottom-collapsed { --bottom-height: 0px; }
+    body.left-collapsed { --left-width: 0px; }
+    body.right-collapsed { --right-width: 0px; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Patrick Hand', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--papel);
+      color: var(--text-main);
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* ========================================================
+       BOTÕES CENTRAIS DISCRETOS (4 ABAS)
+       ======================================================== */
+    .collapse-tab {
+      position: fixed;
+      background: var(--surface);
+      border: 2px solid var(--border-color);
+      color: var(--ink);
+      cursor: pointer;
+      z-index: 1300;
+      opacity: 0.75;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      user-select: none;
+      box-shadow: 2px 2px 0 var(--border-color);
+    }
+    body.dark-theme .collapse-tab { color: var(--yel); }
+    .collapse-tab:hover { opacity: 1; transform: scale(1.08); }
+
+    #tab-toggle-top {
+      top: 0; left: 50%; transform: translateX(-50%);
+      padding: 2px 16px; border-top: none; border-radius: 0 0 8px 8px;
+    }
+    #tab-toggle-bottom {
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      padding: 2px 16px; border-bottom: none; border-radius: 8px 8px 0 0;
+    }
+    #tab-toggle-left {
+      left: 0; top: 50%; transform: translateY(-50%);
+      padding: 12px 3px; border-left: none; border-radius: 0 8px 8px 0;
+    }
+    #tab-toggle-right {
+      right: 0; top: 50%; transform: translateY(-50%);
+      padding: 12px 3px; border-right: none; border-radius: 8px 0 0 8px;
+    }
+
+    /* ========================================================
+       1. BARRA SUPERIOR RETRÁTIL
+       ======================================================== */
+    #topbar {
+      position: fixed;
+      top: 0;
+      left: var(--left-width);
+      right: var(--right-width);
+      height: 50px;
+      background-color: var(--surface);
+      border-bottom: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s, right 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    body.top-collapsed #topbar { transform: translateY(-100%); }
+
+    .group { display: flex; align-items: center; gap: 6px; }
+
+    button {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 2px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.15s;
+      box-shadow: 2px 2px 0 var(--border-color);
+    }
+    button:hover { filter: brightness(1.1); }
+    button:active { transform: translate(1px, 1px); box-shadow: none; }
+    
+    .btn-action { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .btn-action:hover { background: #123180; }
+
+    .input-box {
+      background: var(--papel);
+      border: 2px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .input-box:focus { outline: 2px solid var(--lar); border-color: var(--lar); }
+
+    .badge {
+      background: var(--surface);
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+      font-weight: bold;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+    body.dark-theme .badge { color: var(--yel); }
+
+    /* ========================================================
+       2. BARRA LATERAL ESQUERDA (ATALHOS & ÍCONES)
+       ======================================================== */
+    #left-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: var(--bottom-height);
+      width: 66px;
+      background: var(--surface);
+      border-right: 2px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      gap: 7px;
+      z-index: 1050;
+      user-select: none;
+      overflow-y: auto;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.3s;
+    }
+    body.left-collapsed #left-sidebar { transform: translateX(-100%); }
+
+    .icon-btn-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      border: 2px solid var(--border-color);
+      box-shadow: 2px 2px 0 var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .icon-btn-circle:hover { transform: scale(1.08); }
+
+    .btn-nav-home    { background: #ffe066; color: #173fa6; border-color: #fab005; }
+    .btn-nav-pen     { background: #e599f7; color: #5c1880; border-color: #ae3ec9; }
+    .btn-nav-symbols { background: #b197fc; color: #3b118b; border-color: #7950f2; font-weight: bold; }
+    .btn-nav-back    { background: #ffa94d; color: #d9480f; border-color: #f76707; }
+    .btn-nav-fwd     { background: #ffd43b; color: #744210; border-color: #fab005; }
+    .btn-nav-calc    { background: #74c0fc; color: #1864ab; border-color: #228be6; }
+    .btn-nav-geo     { background: #66d9e8; color: #0b7285; border-color: #15aabf; }
+    .btn-nav-phet    { background: #8ce99a; color: #2b8a3e; border-color: #40c057; }
+
+    #bookmarks-list-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .category-separator {
+      font-family: 'Caveat', cursive;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--lar);
+      text-transform: uppercase;
+      margin-top: 6px;
+      text-align: center;
+      width: 100%;
+      border-bottom: 2px dashed var(--border-color);
+      padding-bottom: 2px;
+    }
+
+    .bm-item { position: relative; width: 50px; }
+    .bm-item button.main-bm {
+      width: 100%;
+      height: 36px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 2px 4px;
+      background: var(--surface);
+      color: var(--text-main);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 2px 2px 0 var(--border-color);
+    }
+    .bm-item button.main-bm:hover {
+      border-color: var(--lar);
+      color: var(--lar);
+    }
+
+    /* ========================================================
+       3. LATERAL DIREITA (DECIBELÍMETRO FIXO)
+       ======================================================== */
+    #db-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: var(--bottom-height);
+      width: 48px;
+      background: var(--surface);
+      border-left: 2px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 1050;
+      user-select: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.3s;
+    }
+    body.right-collapsed #db-sidebar { transform: translateX(100%); }
+
+    #traffic-light {
+      background: #000;
+      border: 2px solid var(--border-color);
+      border-radius: 14px;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .light {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #222;
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .light.red.active {
+      background: #ff2222;
+      box-shadow: 0 0 14px #ff2222;
+      animation: blink120 0.5s infinite;
+    }
+    .light.yellow.active {
+      background: #ffd43b;
+      box-shadow: 0 0 14px #ffd43b;
+    }
+    .light.green.active {
+      background: #2f9e44;
+      box-shadow: 0 0 14px #2f9e44;
+    }
+
+    @keyframes blink120 {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #ff0000); }
+      50% { opacity: 0.15; filter: none; }
+    }
+
+    #db-meter-vertical {
+      flex: 1;
+      width: 14px;
+      border-radius: 7px;
+      background: linear-gradient(to top,
+        #2f9e44 0%,
+        #51cf66 42%,
+        #ffd43b 65%,
+        #ffa94d 78%,
+        #e03131 90%,
+        #c92a2a 100%
+      );
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--border-color);
+      display: flex;
+    }
+    #db-meter-mask {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 100%;
+      background: var(--surface);
+      transition: height 0.08s ease-out;
+    }
+    #db-label {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+    #mic-toggle-btn {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      padding: 4px;
+      background: var(--papel);
+      border: 2px solid var(--border-color);
+    }
+
+    /* ========================================================
+       4. CAIXA DE STATUS PEDAGÓGICO ACÚSTICO (ESTABILIZADA)
+       ======================================================== */
+    #acoustic-status-card {
+      position: fixed;
+      top: calc(var(--top-height) + 8px);
+      right: calc(var(--right-width) + 8px);
+      z-index: 1040;
+      background: var(--card-bg);
+      color: var(--card-text);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 3px 3px 0 var(--border-color);
+      transition: top 0.3s, right 0.3s, border-color 0.3s, color 0.3s;
+      user-select: none;
+    }
+
+    #acoustic-text {
+      font-family: 'Caveat', cursive;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    #acoustic-badge-db {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--papel);
+      color: var(--text-main);
+      border: 2px solid var(--border-color);
+    }
+
+    .status-green-calm { border-color: #2f9e44 !important; color: #2f9e44 !important; }
+    .status-green-teacher { border-color: #1098ad !important; color: #1098ad !important; }
+    .status-yellow-warn { border-color: #e8590c !important; color: #e8590c !important; }
+    .status-red-critical {
+      border-color: #e03131 !important;
+      color: #e03131 !important;
+      animation: blink120 0.5s infinite;
+    }
+
+    /* ========================================================
+       5. RODAPÉ EXPANDIDO (PREENCHIMENTO HORIZONTAL - TV)
+       ======================================================== */
+    #footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: var(--left-width);
+      right: var(--right-width);
+      height: 50px;
+      background: var(--surface);
+      border-top: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      gap: 20px;
+      z-index: 1200;
+      font-size: 1.1rem;
+      user-select: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s, right 0.3s;
+    }
+    body.bottom-collapsed #footer-bar { transform: translateY(100%); }
+
+    /* LADO ESQUERDO */
+    #footer-left-zone {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .font-btn {
+      padding: 2px 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background: var(--surface);
+      border: 2px solid var(--border-color);
+    }
+
+    #date-text {
+      color: var(--date-color);
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #clock-frame {
+      background: var(--clock-bg);
+      border: 2px solid var(--clock-border);
+      box-shadow: 2px 2px 0 var(--border-color);
+      border-radius: 8px;
+      padding: 2px 12px;
+      color: var(--clock-text);
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-family: monospace;
+      font-size: 1.15em;
+      white-space: nowrap;
+    }
+
+    /* LADO DIREITO (PREENCHIMENTO HORIZONTAL) */
+    #schedule-tracker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: flex-end;
+      flex: 1;
+    }
+    #class-info {
+      color: var(--lar);
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .progress-box {
+      flex: 1;
+      max-width: 280px; /* Barra mais larga para visualização em TV */
+      min-width: 140px;
+      height: 16px;
+      background: var(--papel);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--border-color);
+      display: flex;
+    }
+    #class-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(to right, var(--yel), var(--green));
+      transition: width 0.4s ease;
+    }
+    #class-percent {
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: bold;
+      min-width: 130px;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    /* ========================================================
+       6. ÁREA CENTRAL (CADERNO QUADRICULADO 100%)
+       ======================================================== */
+    #frame-container {
+      position: absolute;
+      top: var(--top-height);
+      left: var(--left-width);
+      right: var(--right-width);
+      bottom: var(--bottom-height);
+      overflow: hidden;
+      background-color: var(--papel);
+      background-image: linear-gradient(var(--grade) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--grade) 1px, transparent 1px);
+      background-size: 22px 22px;
+      transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                  bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                  left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                  right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #frame-container::before {
+      content: "";
+      position: absolute;
+      left: 44px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #ff8787;
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #main-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      transform-origin: 0 0;
+      position: relative;
+      z-index: 2;
+      background: transparent;
+    }
+
+    /* DASHBOARD DE PREPARAÇÃO / CARTÃO POST-IT */
+    #welcome-dashboard {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 30px;
+    }
+    .dashboard-card {
+      background: var(--surface);
+      border: 3px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 6px 6px 0 var(--border-color);
+      position: relative;
+    }
+    .dashboard-card h2 {
+      font-family: 'Caveat', cursive;
+      color: var(--ink);
+      margin-bottom: 8px;
+      font-size: 1.9rem;
+    }
+    body.dark-theme .dashboard-card h2 { color: var(--yel); }
+
+    .dashboard-card p {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    #batch-links-input {
+      width: 100%;
+      height: 170px;
+      background: var(--papel);
+      border: 2px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-bottom: 14px;
+    }
+    #batch-links-input:focus { outline: 2px solid var(--lar); border-color: var(--lar); }
+
+    .close-card-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      border: 2px solid #b02525;
+      font-size: 1rem;
+      box-shadow: 2px 2px 0 var(--border-color);
+    }
+    .close-card-btn:hover { transform: scale(1.1); }
+
+    /* ========================================================
+       7. MÓDULO DE LOUSA / ESCRITA SOBRE A TELA
+       ======================================================== */
+    #drawing-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      touch-action: none;
+    }
+    #drawing-canvas.drawing-active {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    #pen-toolbar {
+      position: absolute;
+      top: 12px;
+      left: 56px;
+      z-index: 1100;
+      background: var(--surface);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px 12px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 4px 4px 0 var(--border-color);
+      user-select: none;
+    }
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .color-swatch:hover, .color-swatch.active {
+      transform: scale(1.25);
+      outline: 2px solid var(--lar);
+      outline-offset: 1px;
+    }
+
+    .pen-tool-btn {
+      padding: 3px 8px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+    }
+    .pen-tool-btn.active {
+      background: var(--yel);
+      color: #000;
+    }
+
+    /* ========================================================
+       8. PAINEL FLUTUANTE DE SÍMBOLOS MATEMÁTICOS E GREGO
+       ======================================================== */
+    #symbols-panel {
+      position: fixed;
+      left: 72px;
+      top: 60px;
+      width: 330px;
+      background: var(--surface);
+      border: 2px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 6px 6px 0 var(--border-color);
+      z-index: 2100;
+      display: none;
+      flex-direction: column;
+      padding: 12px;
+      user-select: none;
+    }
+
+    .symbols-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border-bottom: 2px dashed var(--border-color);
+      padding-bottom: 4px;
+    }
+    .symbols-header h4 {
+      font-family: 'Caveat', cursive;
+      font-size: 1.3rem;
+      color: var(--ink);
+      margin: 0;
+    }
+    body.dark-theme .symbols-header h4 { color: var(--yel); }
+
+    .symbols-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .sym-tab-btn {
+      flex: 1;
+      padding: 3px 4px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+    .sym-tab-btn.active {
+      background: var(--lar);
+      color: #fff;
+      border-color: var(--lar);
+    }
+
+    .symbols-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+    .sym-btn {
+      height: 34px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      font-family: serif;
+      background: var(--papel);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 1px 1px 0 var(--border-color);
+    }
+    .sym-btn:hover {
+      background: var(--yel);
+      color: #000;
+      transform: scale(1.15);
+    }
+
+    /* TOAST DE COPIADO */
+    #copy-toast {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      z-index: 3000;
+      display: none;
+      animation: fadeInOut 1.5s forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, 10px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BOTÕES DE RECOLHIMENTO -->
+  <div id="tab-toggle-top" class="collapse-tab" onclick="toggleBar('top')" title="Ocultar/Exibir Barra Superior">▲</div>
+  <div id="tab-toggle-bottom" class="collapse-tab" onclick="toggleBar('bottom')" title="Ocultar/Exibir Rodapé">▼</div>
+  <div id="tab-toggle-left" class="collapse-tab" onclick="toggleBar('left')" title="Ocultar/Exibir Menu Lateral">◀</div>
+  <div id="tab-toggle-right" class="collapse-tab" onclick="toggleBar('right')" title="Ocultar/Exibir Medidor de dB">▶</div>
+
+  <!-- 1. BARRA SUPERIOR RETRÁTIL -->
+  <header id="topbar">
+    <div class="group">
+      <input type="text" id="url-input" class="input-box" style="width: 380px;" placeholder="Endereço da Aula (URL)..." value="">
+      <button class="btn-action" onclick="smartLoadUrl(null, true)" title="Carregar Página">Ir</button>
+    </div>
+
+    <!-- Zoom -->
+    <div class="group">
+      <button onclick="changeZoom(-0.25)" title="Macro -25%">«</button>
+      <button onclick="changeZoom(-0.01)" title="Micro -1%">−</button>
+      <div class="badge" id="zoom-val" style="min-width: 55px; text-align: center;">100%</div>
+      <button onclick="changeZoom(0.01)" title="Micro +1%">+</button>
+      <button onclick="changeZoom(0.25)" title="Macro +25%">»</button>
+      <button onclick="setZoom(1.0)" title="Redefinir 100%">1:1</button>
+    </div>
+
+    <!-- Tema & F11 -->
+    <div class="group">
+      <button id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar Tema Claro/Escuro">☀️ / 🌙</button>
+      <button class="btn-action" onclick="toggleFullscreen()" title="Tela Cheia (F11)">⛶ F11</button>
+    </div>
+  </header>
+
+  <!-- 2. CAIXA DE STATUS PEDAGÓGICO ACÚSTICO (ESTABILIZADA) -->
+  <div id="acoustic-status-card">
+    <span id="acoustic-text">🟢 Saudável ao aprendizado (Silêncio / Foco)</span>
+    <span id="acoustic-badge-db">-- dB</span>
+  </div>
+
+  <!-- 3. BARRA LATERAL ESQUERDA -->
+  <aside id="left-sidebar">
+    <button class="icon-btn-circle btn-nav-home" onclick="openWelcomeScreen()" title="Painel de Aulas / Preparação">
+      🏠
+    </button>
+
+    <!-- Ativação da Lousa -->
+    <button class="icon-btn-circle btn-nav-pen" id="toggle-pen-btn" onclick="togglePenMode()" title="Ativar Lousa / Escrita com Mesa Digitalizadora">
+      🖊️
+    </button>
+
+    <!-- NOVO: Paleta de Símbolos Matemáticos & Grego -->
+    <button class="icon-btn-circle btn-nav-symbols" onclick="toggleSymbolsPanel()" title="Alfabeto Grego e Símbolos Matemáticos">
+      Ω
+    </button>
+
+    <button class="icon-btn-circle btn-nav-back" onclick="goBack()" title="Voltar página anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px; height:20px;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+
+    <button class="icon-btn-circle btn-nav-fwd" onclick="goForward()" title="Avançar próxima página">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px; height:20px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+
+    <!-- Calculadora MathDA -->
+    <button class="icon-btn-circle btn-nav-calc" onclick="smartLoadUrl('https://mathda.com/calculator/pt', true)" title="Calculadora Científica Oficial (MathDA)">
+      🧮
+    </button>
+
+    <!-- GeoGebra Oficial (Abre em Janela Externa Limpa) -->
+    <button class="icon-btn-circle btn-nav-geo" onclick="smartLoadUrl('https://www.geogebra.org/calculator', true)" title="GeoGebra Geometria e Gráficos (Abre em Janela Externa)">
+      📐
+    </button>
+
+    <!-- PhET Simulações Oficial (Abre em Janela Externa Limpa) -->
+    <button class="icon-btn-circle btn-nav-phet" onclick="smartLoadUrl('https://phet.colorado.edu/pt_BR/', true)" title="PhET Simulações Interativas (Abre em Janela Externa)">
+      ⚛️
+    </button>
+
+    <div style="width: 80%; height: 2px; background: var(--border-color); margin: 2px 0;"></div>
+
+    <div id="bookmarks-list-left"></div>
+  </aside>
+
+  <!-- 4. LATERAL DIREITA: DECIBELÍMETRO FIXO -->
+  <aside id="db-sidebar">
+    <div id="traffic-light">
+      <div class="light red" id="light-red"></div>
+      <div class="light yellow" id="light-yellow"></div>
+      <div class="light green" id="light-green"></div>
+    </div>
+
+    <div id="db-meter-vertical">
+      <div id="db-meter-mask"></div>
+    </div>
+
+    <span id="db-label">-- dB</span>
+    <button id="mic-toggle-btn" onclick="toggleMic()" title="Ligar/Desligar Monitoramento de Ruído">🎙️</button>
+  </aside>
+
+  <!-- 5. QUADRO CENTRAL (CADERNO QUADRICULADO 100%) -->
+  <main id="frame-container">
+    <!-- BARRA FLUTUANTE DA LOUSA -->
+    <div id="pen-toolbar">
+      <button class="pen-tool-btn active" id="btn-mode-draw" onclick="setPenInteractionMode('draw')">✏️ Escrever</button>
+      <button class="pen-tool-btn" id="btn-mode-nav" onclick="setPenInteractionMode('nav')">👆 Navegar Slide</button>
+      <span style="color:var(--border-color);">|</span>
+
+      <div class="color-swatch active" style="background:#173fa6;" onclick="setPenColor('#173fa6', 3, 'pen')" title="Caneta Azul"></div>
+      <div class="color-swatch" style="background:#e03131;" onclick="setPenColor('#e03131', 3, 'pen')" title="Caneta Vermelha"></div>
+      <div class="color-swatch" style="background:#111111;" onclick="setPenColor('#111111', 3, 'pen')" title="Caneta Preta"></div>
+      <div class="color-swatch" style="background:#2f9e44;" onclick="setPenColor('#2f9e44', 3, 'pen')" title="Caneta Verde"></div>
+
+      <div class="color-swatch" style="background:#ffd43b;" onclick="setPenColor('rgba(255, 212, 59, 0.45)', 18, 'highlighter')" title="Marca-Texto Amarelo"></div>
+      <div class="color-swatch" style="background:#69db7c;" onclick="setPenColor('rgba(105, 219, 124, 0.45)', 18, 'highlighter')" title="Marca-Texto Verde"></div>
+
+      <span style="color:var(--border-color);">|</span>
+      <button class="pen-tool-btn" onclick="setPenSize(2)">Fina</button>
+      <button class="pen-tool-btn" onclick="setPenSize(5)">Média</button>
+      <button class="pen-tool-btn" onclick="setPenSize(14)">Grossa</button>
+
+      <span style="color:var(--border-color);">|</span>
+      <button class="pen-tool-btn" onclick="clearCanvas()" style="color:var(--red);">🧹 Limpar</button>
+      <button class="pen-tool-btn btn-action" onclick="saveCanvasAsJPG()">💾 Salvar JPG</button>
+    </div>
+
+    <!-- CANVAS DE ANOTAÇÃO -->
+    <canvas id="drawing-canvas"></canvas>
+
+    <!-- Tela de Preparação / Importação -->
+    <div id="welcome-dashboard">
+      <div class="dashboard-card">
+        <button class="close-card-btn" onclick="closeWelcomeScreen()" title="Fechar preparação e ir para a lousa">✕</button>
+        <h2>📚 Preparação da Aula</h2>
+        <p>Cole abaixo o cronograma ou links de qualquer disciplina (organizados por tópicos com <code>Nome:</code>). O menu lateral criará os botões automaticamente.</p>
+        <textarea id="batch-links-input" placeholder="Exemplo:
+Módulo 1 - Introdução:
+https://pt.wikipedia.org/wiki/Ciência
+https://pt.wikipedia.org/wiki/Física
+
+Módulo 2 - Tópicos e Exercícios:
+https://pt.wikipedia.org/wiki/Matemática
+https://pt.wikipedia.org/wiki/Astronomia"></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button onclick="clearBatch()" style="color:var(--red); border-color:var(--red);">Limpar</button>
+          <button class="btn-action" onclick="processBatchLinks()" style="padding: 8px 18px; font-size:1rem;">▶️ Gerar Grade e Iniciar Aula</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Iframe de Exibição dos Slides -->
+    <iframe id="main-frame" src="about:blank" style="display: none;" title="Quadro de Aula"></iframe>
+  </main>
+
+  <!-- 6. PAINEL FLUTUANTE DE SÍMBOLOS MATEMÁTICOS & GREGO -->
+  <div id="symbols-panel">
+    <div class="symbols-header">
+      <h4>Símbolos & Alfabeto Grego</h4>
+      <button onclick="toggleSymbolsPanel()" style="background:transparent; border:none; color:var(--red); font-size:1.1rem; cursor:pointer;">✕</button>
+    </div>
+    <div class="symbols-tabs">
+      <button class="sym-tab-btn active" onclick="switchSymbolTab('greek-lower')">Grego (min)</button>
+      <button class="sym-tab-btn" onclick="switchSymbolTab('greek-upper')">Grego (MAI)</button>
+      <button class="sym-tab-btn" onclick="switchSymbolTab('math-ops')">Operadores</button>
+    </div>
+    <div class="symbols-grid" id="symbols-grid-container"></div>
+  </div>
+
+  <!-- TOAST DE NOTIFICAÇÃO DE CÓPIA -->
+  <div id="copy-toast">Copiado!</div>
+
+  <!-- 7. RODAPÉ DE ALTO CONTRASTE (PREENCHIMENTO HORIZONTAL) -->
+  <footer id="footer-bar">
+    <div id="footer-left-zone">
+      <button class="font-btn" onclick="changeFooterFontSize(-1)" title="Diminuir Fonte">A−</button>
+      <button class="font-btn" onclick="changeFooterFontSize(1)" title="Aumentar Fonte">A+</button>
+      <span style="color:var(--border-color);">|</span>
+      <span id="date-text">-- de ---------- de ----</span>
+      <div id="clock-frame">
+        <span id="time-text">--:--:--</span>
+      </div>
+    </div>
+
+    <div id="schedule-tracker">
+      <span id="class-info">Carregando aula...</span>
+      <div class="progress-box">
+        <div id="class-progress-fill"></div>
+      </div>
+      <span id="class-percent">--%</span>
+    </div>
+  </footer>
+
+  <script>
+    /* ========================================================
+       1. CONTROLE DAS 4 BARRAS PERIFÉRICAS
+       ======================================================== */
+    function toggleBar(side) {
+      const body = document.body;
+      const tab = document.getElementById(`tab-toggle-${side}`);
+
+      if (side === 'top') {
+        body.classList.toggle('top-collapsed');
+        tab.textContent = body.classList.contains('top-collapsed') ? '▼' : '▲';
+      } else if (side === 'bottom') {
+        body.classList.toggle('bottom-collapsed');
+        tab.textContent = body.classList.contains('bottom-collapsed') ? '▲' : '▼';
+      } else if (side === 'left') {
+        body.classList.toggle('left-collapsed');
+        tab.textContent = body.classList.contains('left-collapsed') ? '▶' : '◀';
+      } else if (side === 'right') {
+        body.classList.toggle('right-collapsed');
+        tab.textContent = body.classList.contains('right-collapsed') ? '◀' : '▶';
+      }
+      resizeCanvas();
+    }
+
+    /* ========================================================
+       2. ROTEAMENTO INTELIGENTE (DETECÇÃO DE PHET, GEOGEBRA, ETC.)
+       ======================================================== */
+    const BLOCKED_IFRAME_DOMAINS = [
+      'phet.colorado.edu',
+      'geogebra.org',
+      'google.com',
+      'youtube.com',
+      'siga.cps.sp.gov.br'
+    ];
+
+    function isIframeBlocked(url) {
+      return BLOCKED_IFRAME_DOMAINS.some(domain => url.toLowerCase().includes(domain));
+    }
+
+    function openAppWindow(url, title = 'Janela Externa') {
+      const width = Math.min(1280, window.screen.width * 0.9);
+      const height = Math.min(800, window.screen.height * 0.85);
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+      window.open(url, '_blank', `width=${width},height=${height},top=${top},left=${left},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
+
+    function smartLoadUrl(customUrl, isNewNav = true) {
+      const input = document.getElementById('url-input');
+      let target = customUrl || input.value.trim();
+      if (!target) return;
+      if (!target.startsWith('http://') && !target.startsWith('https://')) {
+        target = 'https://' + target;
+      }
+
+      if (isIframeBlocked(target)) {
+        openAppWindow(target, 'Janela Externa');
+        return;
+      }
+
+      loadUrl(target, isNewNav);
+    }
+
+    /* ========================================================
+       3. HISTÓRICO COMPLETO (VOLTAR & AVANÇAR) & NAVEGAÇÃO
+       ======================================================== */
+    const historyStack = [];
+    const forwardStack = [];
+    let currentUrl = '';
+
+    function openWelcomeScreen() {
+      document.getElementById('welcome-dashboard').style.display = 'flex';
+      document.getElementById('main-frame').style.display = 'none';
+      document.getElementById('url-input').value = '';
+    }
+
+    // Fechamento sem bloqueio nem avisos
+    function closeWelcomeScreen() {
+      document.getElementById('welcome-dashboard').style.display = 'none';
+      document.getElementById('main-frame').style.display = 'block';
+      if (currentUrl) {
+        document.getElementById('url-input').value = currentUrl;
+      }
+    }
+
+    function processBatchLinks() {
+      const rawText = document.getElementById('batch-links-input').value.trim();
+      if (!rawText) {
+        alert('Por favor, cole ao menos um link de aula.');
+        return;
+      }
+
+      localStorage.setItem('kiosk_cheerful_batch', rawText);
+      const parsedData = parseBatchText(rawText);
+      renderSidebarMenu(parsedData);
+
+      if (parsedData.length > 0 && parsedData[0].links.length > 0) {
+        smartLoadUrl(parsedData[0].links[0].url, true);
+      }
+    }
+
+    function clearBatch() {
+      document.getElementById('batch-links-input').value = '';
+      localStorage.removeItem('kiosk_cheerful_batch');
+      document.getElementById('bookmarks-list-left').innerHTML = '';
+    }
+
+    function parseBatchText(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let currentCategory = 'Conteúdo';
+      const structure = [];
+
+      lines.forEach(line => {
+        if (line.startsWith('http://') || line.startsWith('https://')) {
+          let slug = line.replace(/\/$/, '').split('/').pop();
+          let title = decodeURIComponent(slug).replace(/[-_]/g, ' ');
+          if (!title) title = 'Link';
+
+          let catObj = structure.find(c => c.category === currentCategory);
+          if (!catObj) {
+            catObj = { category: currentCategory, links: [] };
+            structure.push(catObj);
+          }
+          catObj.links.push({ title, url: line });
+        } else {
+          currentCategory = line.replace(/[:：]$/, '').trim();
+        }
+      });
+      return structure;
+    }
+
+    function renderSidebarMenu(structure) {
+      const container = document.getElementById('bookmarks-list-left');
+      container.innerHTML = '';
+
+      structure.forEach(cat => {
+        if (cat.links.length > 0) {
+          const catLabel = document.createElement('div');
+          catLabel.className = 'category-separator';
+          catLabel.textContent = cat.category;
+          container.appendChild(catLabel);
+
+          cat.links.forEach(link => {
+            const wrap = document.createElement('div');
+            wrap.className = 'bm-item';
+            wrap.innerHTML = `<button class="main-bm" onclick="smartLoadUrl('${link.url}', true)" title="${link.title}">${link.title}</button>`;
+            container.appendChild(wrap);
+          });
+        }
+      });
+    }
+
+    function loadUrl(target, isNewNav = true) {
+      const input = document.getElementById('url-input');
+      if (isNewNav && currentUrl && currentUrl !== target) {
+        historyStack.push(currentUrl);
+        forwardStack.length = 0;
+      }
+
+      currentUrl = target;
+      input.value = target;
+
+      document.getElementById('welcome-dashboard').style.display = 'none';
+      const frame = document.getElementById('main-frame');
+      frame.style.display = 'block';
+      frame.src = target;
+    }
+
+    function goBack() {
+      if (historyStack.length > 0) {
+        forwardStack.push(currentUrl);
+        const prevUrl = historyStack.pop();
+        loadUrl(prevUrl, false);
+      } else {
+        openWelcomeScreen();
+      }
+    }
+
+    function goForward() {
+      if (forwardStack.length > 0) {
+        historyStack.push(currentUrl);
+        const nextUrl = forwardStack.pop();
+        loadUrl(nextUrl, false);
+      }
+    }
+
+    /* ========================================================
+       4. TEMA CLARO / ESCURO & ZOOM
+       ======================================================== */
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+    }
+
+    let currentZoom = 1.00;
+    function applyZoom() {
+      const frame = document.getElementById('main-frame');
+      currentZoom = Math.min(Math.max(currentZoom, 0.25), 3.50);
+      frame.style.transform = `scale(${currentZoom})`;
+      frame.style.width = `${100 / currentZoom}%`;
+      frame.style.height = `${100 / currentZoom}%`;
+      document.getElementById('zoom-val').textContent = `${Math.round(currentZoom * 100)}%`;
+    }
+
+    function changeZoom(delta) {
+      currentZoom = parseFloat((currentZoom + delta).toFixed(2));
+      applyZoom();
+    }
+
+    function setZoom(val) {
+      currentZoom = val;
+      applyZoom();
+    }
+
+    /* ========================================================
+       5. MÓDULO DE LOUSA / ESCRITA SOBRE A TELA
+       ======================================================== */
+    const canvas = document.getElementById('drawing-canvas');
+    const ctx = canvas.getContext('2d');
+    const penToolbar = document.getElementById('pen-toolbar');
+    let isDrawingMode = false;
+    let isDrawing = false;
+    let currentColor = '#173fa6';
+    let currentWidth = 3;
+    let currentTool = 'pen';
+
+    function resizeCanvas() {
+      const rect = document.getElementById('frame-container').getBoundingClientRect();
+      const tempImg = ctx.getImageData(0, 0, canvas.width || 1, canvas.height || 1);
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      try { ctx.putImageData(tempImg, 0, 0); } catch(e) {}
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 200);
+
+    function togglePenMode() {
+      isDrawingMode = !isDrawingMode;
+      penToolbar.style.display = isDrawingMode ? 'flex' : 'none';
+      if (isDrawingMode) {
+        setPenInteractionMode('draw');
+      } else {
+        setPenInteractionMode('nav');
+      }
+    }
+
+    function setPenInteractionMode(mode) {
+      const btnDraw = document.getElementById('btn-mode-draw');
+      const btnNav = document.getElementById('btn-mode-nav');
+      if (mode === 'draw') {
+        canvas.classList.add('drawing-active');
+        btnDraw.classList.add('active');
+        btnNav.classList.remove('active');
+      } else {
+        canvas.classList.remove('drawing-active');
+        btnNav.classList.add('active');
+        btnDraw.classList.remove('active');
+      }
+    }
+
+    function setPenColor(color, width, tool = 'pen') {
+      currentColor = color;
+      currentWidth = width;
+      currentTool = tool;
+      document.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function setPenSize(size) {
+      currentWidth = (currentTool === 'highlighter') ? size * 4 : size;
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!canvas.classList.contains('drawing-active')) return;
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = currentWidth * (e.pressure && e.pressure > 0 ? (e.pressure * 1.5) : 1);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (currentTool === 'highlighter') {
+        ctx.globalCompositeOperation = 'multiply';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDrawing) return;
+      ctx.lineWidth = currentWidth * (e.pressure && e.pressure > 0 ? (e.pressure * 1.5) : 1);
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener('pointerup', () => { isDrawing = false; });
+    canvas.addEventListener('pointerleave', () => { isDrawing = false; });
+
+    function saveCanvasAsJPG() {
+      const exp = document.createElement('canvas');
+      exp.width = canvas.width;
+      exp.height = canvas.height;
+      const expCtx = exp.getContext('2d');
+
+      expCtx.fillStyle = document.body.classList.contains('dark-theme') ? '#0d1117' : '#fbfdff';
+      expCtx.fillRect(0, 0, exp.width, exp.height);
+
+      expCtx.strokeStyle = '#ff8787';
+      expCtx.lineWidth = 2;
+      expCtx.beginPath();
+      expCtx.moveTo(44, 0);
+      expCtx.lineTo(44, exp.height);
+      expCtx.stroke();
+
+      expCtx.drawImage(canvas, 0, 0);
+
+      const link = document.createElement('a');
+      link.download = `Lousa_Aula_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.jpg`;
+      link.href = exp.toDataURL('image/jpeg', 0.95);
+      link.click();
+    }
+
+    /* ========================================================
+       6. PAINEL DE SÍMBOLOS MATEMÁTICOS & GREGO
+       ======================================================== */
+    const SYMBOL_SETS = {
+      'greek-lower': ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'π', 'ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω'],
+      'greek-upper': ['Γ', 'Δ', 'Θ', 'Λ', 'Ξ', 'Π', 'Σ', 'Φ', 'Ψ', 'Ω'],
+      'math-ops': ['±', '∓', '×', '÷', '·', '√', '∛', '≈', '≠', '≡', '≤', '≥', '∞', '∂', '∇', '∫', '∬', '∑', '∏', 'Δ', '°', '∠', '⊥', '∥', '→', '⇒', '⇔', '∈', '∉', '⊂', '∀', '∃', 'ℏ']
+    };
+
+    function toggleSymbolsPanel() {
+      const p = document.getElementById('symbols-panel');
+      p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+      if (p.style.display === 'flex') switchSymbolTab('greek-lower');
+    }
+
+    function switchSymbolTab(tabKey) {
+      document.querySelectorAll('.sym-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const container = document.getElementById('symbols-grid-container');
+      container.innerHTML = '';
+
+      const symbols = SYMBOL_SETS[tabKey] || [];
+      symbols.forEach(sym => {
+        const btn = document.createElement('button');
+        btn.className = 'sym-btn';
+        btn.textContent = sym;
+        btn.title = `Copiar ${sym}`;
+        btn.onclick = () => copySymbolToClipboard(sym);
+        container.appendChild(btn);
+      });
+    }
+
+    function copySymbolToClipboard(symbol) {
+      navigator.clipboard.writeText(symbol).then(() => {
+        showToast(`Copiado: ${symbol}`);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('copy-toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 1400);
+    }
+
+    /* ========================================================
+       7. GRADE OFICIAL COM SIGLAS (M), (T), (N)
+       ======================================================== */
+    const SCHEDULES = [
+      // MANHÃ (M)
+      { label: '1ª Aula (M)', start: '07:00', end: '07:50' },
+      { label: '2ª Aula (M)', start: '07:50', end: '08:40' },
+      { label: '3ª Aula (M)', start: '08:40', end: '09:30' },
+      { label: 'Intervalo (M)', start: '09:30', end: '09:45', isBreak: true },
+      { label: '4ª Aula (M)', start: '09:45', end: '10:35' },
+      { label: '5ª Aula (M)', start: '10:35', end: '11:25' },
+      { label: '6ª Aula (M)', start: '11:25', end: '12:15' },
+      { label: '7ª Aula (M)', start: '12:15', end: '13:05' },
+
+      // TARDE (T)
+      { label: '1ª Aula (T)', start: '13:10', end: '14:00' },
+      { label: '2ª Aula (T)', start: '14:00', end: '14:50' },
+      { label: '3ª Aula (T)', start: '14:50', end: '15:40' },
+      { label: 'Intervalo (T)', start: '15:40', end: '15:55', isBreak: true },
+      { label: '4ª Aula (T)', start: '15:55', end: '16:45' },
+      { label: '5ª Aula (T)', start: '16:45', end: '17:35' },
+      { label: '6ª Aula (T)', start: '17:35', end: '18:25' },
+
+      // NOITE (N)
+      { label: '1ª Aula (N)', start: '18:30', end: '19:15' },
+      { label: '2ª Aula (N)', start: '19:15', end: '20:00' },
+      { label: 'Intervalo (N)', start: '20:00', end: '20:15', isBreak: true },
+      { label: '3ª Aula (N)', start: '20:15', end: '21:00' },
+      { label: '4ª Aula (N)', start: '21:00', end: '21:45' },
+      { label: '5ª Aula (N)', start: '21:45', end: '22:30' }
+    ];
+
+    function toSeconds(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 3600 + m * 60;
+    }
+
+    const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+    function updateFooterClockAndTracker() {
+      const now = new Date();
+
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = MONTHS[now.getMonth()];
+      const year = now.getFullYear();
+      document.getElementById('date-text').textContent = `${day} de ${month} de ${year}`;
+      document.getElementById('time-text').textContent = now.toLocaleTimeString('pt-BR');
+
+      const curSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      let activeClass = null;
+
+      for (const item of SCHEDULES) {
+        const sSec = toSeconds(item.start);
+        const eSec = toSeconds(item.end);
+        if (curSec >= sSec && curSec < eSec) {
+          activeClass = { ...item, sSec, eSec };
+          break;
+        }
+      }
+
+      const infoEl = document.getElementById('class-info');
+      const fillEl = document.getElementById('class-progress-fill');
+      const percentEl = document.getElementById('class-percent');
+
+      if (activeClass) {
+        const total = activeClass.eSec - activeClass.sSec;
+        const passed = curSec - activeClass.sSec;
+        const pct = Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
+        
+        const remTotalSec = activeClass.eSec - curSec;
+        const remMin = Math.floor(remTotalSec / 60);
+        const remSec = remTotalSec % 60;
+
+        infoEl.textContent = `${activeClass.label} [${activeClass.start} - ${activeClass.end}]`;
+        fillEl.style.width = `${pct}%`;
+        percentEl.textContent = `${pct}% (restam ${remMin}m ${String(remSec).padStart(2,'0')}s)`;
+      } else {
+        infoEl.textContent = 'Fora do Horário Letivo';
+        fillEl.style.width = '0%';
+        percentEl.textContent = '--';
+      }
+    }
+
+    setInterval(updateFooterClockAndTracker, 1000);
+    updateFooterClockAndTracker();
+
+    let footerFontSize = 16;
+    function changeFooterFontSize(delta) {
+      footerFontSize = Math.min(Math.max(footerFontSize + delta, 11), 26);
+      document.getElementById('footer-bar').style.fontSize = `${footerFontSize}px`;
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    /* ========================================================
+       8. MONITOR ACÚSTICO COM DELAY DE 1.5s
+       ======================================================== */
+    let audioCtx, analyser, gainNode, micStream;
+    const lRed = document.getElementById('light-red');
+    const lYellow = document.getElementById('light-yellow');
+    const lGreen = document.getElementById('light-green');
+    const dbMeterMask = document.getElementById('db-meter-mask');
+    const dbLabel = document.getElementById('db-label');
+    const acousticCard = document.getElementById('acoustic-status-card');
+    const acousticText = document.getElementById('acoustic-text');
+    const acousticBadgeDb = document.getElementById('acoustic-badge-db');
+
+    let smoothedDb = 35;
+    let currentPedagogicalState = 'calm';
+    let pendingState = 'calm';
+    let pendingStateStartTime = 0;
+    const STATE_DELAY_MS = 1500;
+
+    async function toggleMic() {
+      if (!audioCtx) {
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            }
+          });
+
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioCtx.createMediaStreamSource(micStream);
+
+          gainNode = audioCtx.createGain();
+          gainNode.gain.value = 5.5;
+
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 512;
+          analyser.smoothingTimeConstant = 0.4;
+
+          source.connect(gainNode);
+          gainNode.connect(analyser);
+
+          acousticCard.style.display = 'flex';
+
+          const timeData = new Float32Array(analyser.fftSize);
+
+          function loop() {
+            if (!audioCtx) return;
+            analyser.getFloatTimeDomainData(timeData);
+
+            let sumSquares = 0;
+            for (let i = 0; i < timeData.length; i++) {
+              sumSquares += timeData[i] * timeData[i];
+            }
+            let rms = Math.sqrt(sumSquares / timeData.length);
+            let dbFS = 20 * Math.log10(Math.max(rms, 0.0001));
+
+            let instantDb = Math.min(95, Math.max(32, Math.round(dbFS + 94)));
+            smoothedDb = smoothedDb * 0.8 + instantDb * 0.2;
+            let displayDb = Math.round(smoothedDb);
+
+            let percentRevealed = Math.min(100, Math.max(0, Math.round(((displayDb - 32) / 56) * 100)));
+            dbMeterMask.style.height = `${100 - percentRevealed}%`;
+
+            dbLabel.textContent = `${displayDb} dB`;
+            acousticBadgeDb.textContent = `${displayDb} dB`;
+
+            lRed.classList.remove('active');
+            lYellow.classList.remove('active');
+            lGreen.classList.remove('active');
+
+            if (displayDb >= 78) lRed.classList.add('active');
+            else if (displayDb >= 68) lYellow.classList.add('active');
+            else lGreen.classList.add('active');
+
+            let targetState = 'calm';
+            if (displayDb >= 78) targetState = 'critical';
+            else if (displayDb >= 68) targetState = 'warn';
+            else if (displayDb >= 50) targetState = 'teacher';
+
+            if (targetState !== currentPedagogicalState) {
+              if (targetState !== pendingState) {
+                pendingState = targetState;
+                pendingStateStartTime = Date.now();
+              } else if (Date.now() - pendingStateStartTime >= (targetState === 'critical' ? 500 : STATE_DELAY_MS)) {
+                currentPedagogicalState = targetState;
+                updatePedagogicalBadge(currentPedagogicalState);
+              }
+            } else {
+              pendingState = currentPedagogicalState;
+            }
+
+            requestAnimationFrame(loop);
+          }
+          loop();
+        } catch (e) {
+          alert('Microfone indisponível ou negado: ' + e.message);
+        }
+      } else {
+        if (micStream) micStream.getTracks().forEach(t => t.stop());
+        if (audioCtx) audioCtx.close();
+        audioCtx = null;
+        dbMeterMask.style.height = '100%';
+        dbLabel.textContent = '-- dB';
+        lRed.classList.remove('active');
+        lYellow.classList.remove('active');
+        lGreen.classList.remove('active');
+        acousticCard.style.display = 'none';
+      }
+    }
+
+    function updatePedagogicalBadge(state) {
+      acousticCard.className = '';
+      if (state === 'critical') {
+        acousticCard.classList.add('status-red-critical');
+        acousticText.textContent = '🔴 Perda de aprendizado (Ruído excessivo!)';
+      } else if (state === 'warn') {
+        acousticCard.classList.add('status-yellow-warn');
+        acousticText.textContent = '🟡 Aprendizado reduzido (Ruído moderado)';
+      } else if (state === 'teacher') {
+        acousticCard.classList.add('status-green-teacher');
+        acousticText.textContent = '🟢 Saudável ao aprendizado (Voz do Professor)';
+      } else {
+        acousticCard.classList.add('status-green-calm');
+        acousticText.textContent = '🟢 Saudável ao aprendizado (Silêncio / Foco)';
+      }
+    }
+
+    // Carrega lote salvo anteriormente
+    const savedBatch = localStorage.getItem('kiosk_cheerful_batch');
+    if (savedBatch) {
+      document.getElementById('batch-links-input').value = savedBatch;
+      renderSidebarMenu(parseBatchText(savedBatch));
+    }
+  </script>
+</body>
+</html>
